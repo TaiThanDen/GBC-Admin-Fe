@@ -168,16 +168,15 @@ export default function DynamicTable({
                 </td>
               ))}
               <td className="px-4 py-4 gap-5 flex items-center">
-                {renderAction
-                  ? renderAction(item)
-                  : (
-                    <Link to={`/post/${item.id}`}>
-                      <button className="text-blue-600 cursor-pointer text-2xl">
-                        <RiEditLine />
-                      </button>
-                    </Link>
-                  )
-                }
+                {renderAction ? (
+                  renderAction(item)
+                ) : (
+                  <Link to={`/post/${item.id}`}>
+                    <button className="text-blue-600 cursor-pointer text-2xl">
+                      <RiEditLine />
+                    </button>
+                  </Link>
+                )}
                 <button
                   className="text-red-600 cursor-pointer text-2xl"
                   onClick={() => handleDeleteClick(item)}

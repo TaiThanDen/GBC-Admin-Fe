@@ -15,7 +15,7 @@ function getFileIconUrl(file: File) {
     return "https://upload.wikimedia.org/wikipedia/commons/e/e8/Microsoft_Office_Word_%282025%E2%80%93present%29.svg";
   if (["xls", "xlsx"].includes(ext))
     return "https://upload.wikimedia.org/wikipedia/commons/6/60/Microsoft_Office_Excel_%282025%E2%80%93present%29.svg";
-  return "https://upload.wikimedia.org/wikipedia/commons/8/87/File_icon.svg";
+  return "https://cdn-icons-png.flaticon.com/512/4807/4807934.png";
 }
 
 export default function AddImgDropZone({
