@@ -26,6 +26,7 @@ import {
 // --- Tiptap Node ---
 import { ImageUploadNode } from "~/components/tiptap-node/image-upload-node/image-upload-node-extension";
 import { HorizontalRule } from "~/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
+import { Youtube } from "~/components/tiptap-node/youtube-node/youtube-node-extension";
 import "~/components/tiptap-node/blockquote-node/blockquote-node.scss";
 import "~/components/tiptap-node/code-block-node/code-block-node.scss";
 import "~/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
@@ -33,6 +34,7 @@ import "~/components/tiptap-node/list-node/list-node.scss";
 import "~/components/tiptap-node/image-node/image-node.scss";
 import "~/components/tiptap-node/heading-node/heading-node.scss";
 import "~/components/tiptap-node/paragraph-node/paragraph-node.scss";
+import "~/components/tiptap-node/youtube-node/youtube-node.scss";
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from "~/components/tiptap-ui/heading-dropdown-menu";
@@ -50,6 +52,11 @@ import {
   LinkContent,
   LinkButton,
 } from "~/components/tiptap-ui/link-popover";
+import {
+  YoutubePopover,
+  YoutubeContent,
+  YoutubeButton,
+} from "~/components/tiptap-ui/youtube-popover";
 import { MarkButton } from "~/components/tiptap-ui/mark-button";
 import { TextAlignButton } from "~/components/tiptap-ui/text-align-button";
 import { UndoRedoButton } from "~/components/tiptap-ui/undo-redo-button";
@@ -58,6 +65,7 @@ import { UndoRedoButton } from "~/components/tiptap-ui/undo-redo-button";
 import { ArrowLeftIcon } from "~/components/tiptap-icons/arrow-left-icon";
 import { HighlighterIcon } from "~/components/tiptap-icons/highlighter-icon";
 import { LinkIcon } from "~/components/tiptap-icons/link-icon";
+import { YoutubeIcon } from "~/components/tiptap-icons/youtube-icon";
 
 // --- Hooks ---
 import { useIsMobile } from "~/hooks/use-mobile";
@@ -78,10 +86,12 @@ import content from "~/components/tiptap-templates/simple/data/content.json";
 const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
+  onYoutubeClick,
   isMobile,
 }: {
   onHighlighterClick: () => void;
   onLinkClick: () => void;
+  onYoutubeClick: () => void;
   isMobile: boolean;
 }) => {
   return (
@@ -141,6 +151,11 @@ const MainToolbarContent = ({
 
       <ToolbarGroup>
         <ImageUploadButton text="Add" />
+        {!isMobile ? (
+          <YoutubePopover />
+        ) : (
+          <YoutubeButton onClick={onYoutubeClick} />
+        )}
       </ToolbarGroup>
 
       <Spacer />
@@ -158,7 +173,7 @@ const MobileToolbarContent = ({
   type,
   onBack,
 }: {
-  type: "highlighter" | "link";
+  type: "highlighter" | "link" | "youtube";
   onBack: () => void;
 }) => (
   <>
@@ -167,8 +182,10 @@ const MobileToolbarContent = ({
         <ArrowLeftIcon className="tiptap-button-icon" />
         {type === "highlighter" ? (
           <HighlighterIcon className="tiptap-button-icon" />
-        ) : (
+        ) : type === "link" ? (
           <LinkIcon className="tiptap-button-icon" />
+        ) : (
+          <YoutubeIcon className="tiptap-button-icon" />
         )}
       </Button>
     </ToolbarGroup>
@@ -177,8 +194,10 @@ const MobileToolbarContent = ({
 
     {type === "highlighter" ? (
       <ColorHighlightPopoverContent />
-    ) : (
+    ) : type === "link" ? (
       <LinkContent />
+    ) : (
+      <YoutubeContent />
     )}
   </>
 );
@@ -186,10 +205,11 @@ const MobileToolbarContent = ({
 export function SimpleEditor({ className }: { className?: string }) {
   const isMobile = useIsMobile();
   const { height } = useWindowSize();
-  const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
+  const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link" | "youtube">(
     "main"
   );
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [exportedJson, setExportedJson] = useState<string>("");
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -228,6 +248,10 @@ export function SimpleEditor({ className }: { className?: string }) {
         upload: handleImageUpload,
         onError: (error) => console.error("Upload failed:", error),
       }),
+      Youtube.configure({
+        width: 640,
+        height: 480,
+      }),
     ],
     content,
   });
@@ -243,9 +267,27 @@ export function SimpleEditor({ className }: { className?: string }) {
     }
   }, [isMobile, mobileView]);
 
+  const handleExportJson = () => {
+    if (editor) {
+      const json = editor.getJSON();
+      setExportedJson(JSON.stringify(json, null, 2));
+      console.log(json);
+    }
+  };
+
   return (
     <div className={`simple-editor-wrapper ${className ?? ""}`}>
       <EditorContext.Provider value={{ editor }}>
+        {/* Export JSON button */}
+        <div className="mb-2 flex justify-end gap-2">
+          <button
+            type="button"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={handleExportJson}
+          >
+            Export JSON
+          </button>
+        </div>
         <Toolbar
           ref={toolbarRef}
           style={{
@@ -260,11 +302,12 @@ export function SimpleEditor({ className }: { className?: string }) {
             <MainToolbarContent
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
+              onYoutubeClick={() => setMobileView("youtube")}
               isMobile={isMobile}
             />
           ) : (
             <MobileToolbarContent
-              type={mobileView === "highlighter" ? "highlighter" : "link"}
+              type={mobileView === "highlighter" ? "highlighter" : mobileView === "link" ? "link" : "youtube"}
               onBack={() => setMobileView("main")}
             />
           )}
@@ -275,6 +318,15 @@ export function SimpleEditor({ className }: { className?: string }) {
           role="presentation"
           className="simple-editor-content"
         />
+        {/* Hiển thị dữ liệu JSON xuất ra để test */}
+        {exportedJson && (
+          <div className="mt-4 p-4 bg-gray-100 rounded">
+            <div className="font-bold mb-2">Exported JSON:</div>
+            <pre className="whitespace-pre-wrap break-all text-xs">
+              {exportedJson}
+            </pre>
+          </div>
+        )}
       </EditorContext.Provider>
     </div>
   );

@@ -100,7 +100,7 @@ const Sidebar = () => {
           {/* Body */}
           <nav className="flex-1 overflow-y-auto px-2">
             <ul className="space-y-1">
-              <li>
+              {/* <li>
                 <a
                   className={`flex items-center gap-x-3 py-2 px-2.5 text-sm text-gray-800 rounded-lg hover:bg-gray-100 transition-all duration-300 ${mini ? "justify-center" : ""}`}
                   href="#"
@@ -108,10 +108,10 @@ const Sidebar = () => {
                   <AiOutlineDashboard className="text-2xl" />
                   {!mini && "Dashboard"}
                 </a>
-              </li>
+              </li> */}
               <li>
                 <Link
-                  className={`flex items-center gap-x-3 py-2 px-2.5 text-sm text-gray-800 rounded-lg hover:bg-gray-100 transition-all duration-300 ${mini ? "justify-center" : ""}`}
+                  className={`flex items-center gap-x-3 py-2 px-2.5 text-sm text-gray-800 rounded-lg hover:bg-gray-100 transition-all duration-300  ${mini ? "justify-center" : ""}`}
                   to="news"
                 >
                   <IoNewspaperOutline className="text-2xl" />
@@ -143,7 +143,7 @@ const Sidebar = () => {
               <li>
                 <button
                   type="button"
-                  className={`w-full flex items-center gap-x-3 py-2 px-2.5 text-sm text-gray-800 rounded-lg hover:bg-gray-100 transition-all duration-300 ${mini ? "justify-center" : ""}`}
+                  className={`w-full cursor-pointer flex items-center gap-x-3 py-2 px-2.5 text-sm text-gray-800 rounded-lg hover:bg-gray-100 transition-all duration-300 ${mini ? "justify-center" : ""}`}
                   onClick={() => setAccountOpen((v) => !v)}
                   aria-expanded={accountOpen}
                 >

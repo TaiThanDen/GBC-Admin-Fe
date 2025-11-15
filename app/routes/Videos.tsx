@@ -4,8 +4,16 @@ import { useState } from "react";
 import AddVideoModal from "../components/modules/Videos/AddVideo";
 import type { NewVideo } from "~/components/modules/Videos/AddVideo";
 import { MdOutlineEdit } from "react-icons/md";
-import { FaTrash } from "react-icons/fa";
-import DeleteModal from "../components/resuable/DeleteModal"; // Import DeleteModal
+import { FaTrash, FaFilter } from "react-icons/fa";
+import DeleteModal from "../components/resuable/DeleteModal";
+
+const TAGS = [
+  "Tất cả",
+  "Nông nghiệp",
+  "Công nghệ",
+  "Chuỗi cung ứng",
+  "Chống hàng giả",
+];
 
 const VIDEOS_ITEMS = [
   {
@@ -49,7 +57,21 @@ const VIDEOS_ITEMS = [
 export default function VideosPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState(VIDEOS_ITEMS);
-  const [deleteItem, setDeleteItem] = useState<any>(null); // State cho item cần xóa
+  const [deleteItem, setDeleteItem] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("Tất cả");
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
+
+  // Responsive check
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  // Filtered data
+  const filteredData = data.filter(
+    (item) =>
+      (filter === "Tất cả" || item.tag === filter) &&
+      (item.title.toLowerCase().includes(search.toLowerCase()) ||
+        item.content.toLowerCase().includes(search.toLowerCase()))
+  );
 
   const handleAddVideo = (newVideo: NewVideo) => {
     const newId = (Math.random() + Date.now()).toString();
@@ -57,7 +79,7 @@ export default function VideosPage() {
       id: newId,
       link: newVideo.link,
       title: newVideo.title,
-      content: "", // hoặc lấy từ form nếu có
+      content: "",
       date: new Date().toLocaleDateString("vi-VN"),
       tag: newVideo.tag,
     };
@@ -65,19 +87,19 @@ export default function VideosPage() {
   };
 
   const handleDeleteClick = (item: any) => {
-    setDeleteItem(item); // Mở modal xóa
+    setDeleteItem(item);
   };
 
   const handleDelete = () => {
     if (deleteItem) {
       setData((prev) => prev.filter((v) => v.id !== deleteItem.id));
-      setDeleteItem(null); // Đóng modal
+      setDeleteItem(null);
     }
   };
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-2">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 mb-1">
             Quản lý video hướng dẫn
@@ -94,10 +116,75 @@ export default function VideosPage() {
           Tạo tài liệu mới
         </button>
       </div>
+
+      {/* Search & Filter */}
+      <div className="my-6">
+        <div className="flex flex-col md:flex-row gap-2 items-stretch">
+          <div className="flex-1 flex items-center gap-2">
+            {/* Search bar UI mới */}
+            <div className="bg-white flex px-1 py-1 rounded-full border border-green-500 overflow-hidden max-w-md w-full mx-auto">
+              <input
+                type="text"
+                placeholder="Search Something..."
+                className="w-full outline-none bg-white pl-4 text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <button
+                type="button"
+                className="bg-green-600 hover:bg-green-700 transition-all text-white text-sm rounded-full px-5 py-2.5"
+              >
+                Search
+              </button>
+            </div>
+            {/* Mobile: filter icon, Desktop: dropdown */}
+            {isMobile ? (
+              <button
+                className="p-2 bg-gray-200 rounded-lg ml-2"
+                onClick={() => setShowMobileFilter((v) => !v)}
+                aria-label="Lọc"
+              >
+                <FaFilter />
+              </button>
+            ) : (
+              <select
+                className="px-3 py-2 border rounded-lg ml-2"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                {TAGS.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+        {/* Mobile filter dropdown */}
+        {isMobile && showMobileFilter && (
+          <div className="mt-2">
+            <select
+              className="px-3 py-2 border rounded-lg w-full"
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setShowMobileFilter(false);
+              }}
+            >
+              {TAGS.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {data.map((item, i) => (
+        {filteredData.map((item, i) => (
           <div key={i} className="bg-white rounded-xl shadow p-4">
-            {/* Hiển thị video YouTube */}
             <div className="aspect-video mb-3 rounded-lg overflow-hidden">
               <iframe
                 width="100%"
@@ -131,7 +218,7 @@ export default function VideosPage() {
                 </button>
               </Link>
               <button
-                onClick={() => handleDeleteClick(item)} // Gọi modal xóa
+                onClick={() => handleDeleteClick(item)}
                 className="px-8 py-3 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 flex justify-center items-center gap-2"
               >
                 <FaTrash className="text-md" />
@@ -142,7 +229,6 @@ export default function VideosPage() {
         ))}
       </div>
 
-      {/* Modal thêm video */}
       <AddVideoModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -156,7 +242,6 @@ export default function VideosPage() {
         ]}
       />
 
-      {/* Modal xóa video */}
       {deleteItem && (
         <DeleteModal
           item={deleteItem}
